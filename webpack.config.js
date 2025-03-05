@@ -1,18 +1,18 @@
-const path = require('path')
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
-const ReactRefreshTypeScript = require('react-refresh-typescript')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const path = require('path');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const ReactRefreshTypeScript = require('react-refresh-typescript');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-const IS_DEVELOPMENT = process.env.NODE_ENV !== 'production'
-const IS_SERVE = process.env.WEBPACK_SERVE ?? false
+const IS_DEVELOPMENT = process.env.NODE_ENV !== 'production';
+const IS_SERVE = process.env.WEBPACK_SERVE ?? false;
 
-const PATH_ENTRY = path.join(__dirname, 'src', 'index.tsx')
-const PATH_TEMPLATE_ENTRY = path.join(__dirname, 'public', 'index.html')
-const PATH_PUBLIC_FOLDER = path.join(__dirname, 'public')
-const PATH_OUTPUT_FOLDER = path.join(__dirname, 'build')
+const PATH_ENTRY = path.join(__dirname, 'src', 'index.tsx');
+const PATH_TEMPLATE_ENTRY = path.join(__dirname, 'public', 'index.html');
+const PATH_PUBLIC_FOLDER = path.join(__dirname, 'public');
+const PATH_OUTPUT_FOLDER = path.join(__dirname, 'build');
 
 module.exports = () => {
     const config = {
@@ -27,7 +27,7 @@ module.exports = () => {
         },
         resolve: {
             extensions: ['.js', '.jsx', '.ts', '.tsx', '.css', '.scss', '.sass'],
-            fallback: { process: false },
+            fallback: {process: false},
             modules: [__dirname, 'node_modules']
         },
         devServer: {
@@ -44,9 +44,30 @@ module.exports = () => {
                     use: ['ts-loader']
                 },
                 {
-                    test: /\.s?[ca]ss$/i,
-                    use: ['style-loader', 'css-loader', 'sass-loader']
+                    test: /\.module\.s?[ca]ss$/i, // CSS Modules
+                    use: [
+                        IS_DEVELOPMENT ? 'style-loader' : MiniCssExtractPlugin.loader,
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                modules: {
+                                    localIdentName: IS_DEVELOPMENT ? '[name]__[local]' : '[hash:base64:6]'
+                                }
+                            }
+                        },
+                        'sass-loader'
+                    ]
                 },
+                {
+                    test: /\.s?[ca]ss$/i, // Глобальные стили
+                    exclude: /\.module\.s?[ca]ss$/i,
+                    use: [
+                        IS_DEVELOPMENT ? 'style-loader' : MiniCssExtractPlugin.loader,
+                        'css-loader',
+                        'sass-loader'
+                    ]
+                }
+                ,
                 {
                     test: /\.(png|jpe?g|gif|webp|ico)$/i,
                     type: 'asset/resource'
@@ -73,17 +94,17 @@ module.exports = () => {
                     from: PATH_PUBLIC_FOLDER,
                     filter: (filepath) => {
                         switch (path.normalize(filepath).substring(PATH_PUBLIC_FOLDER.length + 1)) {
-                            case 'index.html': return false
-                            default: return true
+                            case 'index.html': return false;
+                            default: return true;
                         }
                     }
                 }]
             })
         ]
-    }
+    };
 
     if (IS_DEVELOPMENT && IS_SERVE) {
-        config.plugins.push(new ReactRefreshWebpackPlugin())
+        config.plugins.push(new ReactRefreshWebpackPlugin());
         config.module.rules[0].use[0] = {
             loader: 'ts-loader',
             options: {
@@ -92,8 +113,8 @@ module.exports = () => {
                 }),
                 transpileOnly: true
             }
-        }
+        };
     }
 
-    return config
-}
+    return config;
+};

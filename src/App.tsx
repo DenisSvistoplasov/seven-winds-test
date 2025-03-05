@@ -1,4 +1,5 @@
 import './App.style.scss'
+import { Layout } from './components/Layout/Layout';
 
 export function App() {
     const params = Object.entries({
@@ -9,5 +10,5 @@ export function App() {
         showinfo: 0
     }).map(([key, value]) => `${key}=${value}`).join('&')
 
-    return <iframe src={'https://youtube.com/embed/BNflNL40T_M?' + params} />
+    return <Layout />
 }
