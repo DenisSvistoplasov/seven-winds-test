@@ -1,6 +1,7 @@
 import styles from "./Header.module.scss";
 import MenuIcon from "../../assets/icons/menu.svg";
 import UndoIcon from "../../assets/icons/undo.svg";
+import clsx from "clsx";
 
 interface HeaderProps {}
 
@@ -16,7 +17,7 @@ export function Header({}: HeaderProps) {
         </button>
       </div>
       <nav className={styles.nav}>
-        <a href="" className={styles.link}>
+        <a href="" className={clsx(styles.link, styles.active)}>
           Просмотр
         </a>
         <a href="" className={styles.link}>

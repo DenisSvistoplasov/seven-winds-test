@@ -1,12 +1,32 @@
+@use '../../styles/colors' as *;
+
 .header {
   display: flex;
   align-items: center;
   grid-area: header;
+  gap: 28px;
+  padding: 0 20px;
+  background-color: $dark;
 }
 
 .buttons,
 .nav {
   display: flex;
   align-items: center;
+  gap: 20px;
+}
 
+.link{
+  padding: 13.6px 3.5px 11.6px;
+  border-bottom: 2px solid transparent;
+  color: $gray;
+
+  &.active{
+    color: $white;
+    border-bottom-color: currentColor;
+  }
+
+  &:hover{
+    border-bottom-color: currentColor;
+  }
 }

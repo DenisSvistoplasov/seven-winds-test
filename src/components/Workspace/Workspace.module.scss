@@ -1,0 +1,56 @@
+@use '../../styles/colors' as *;
+
+.wrapper{
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.header{
+  background-color: $dark;
+}
+.title{
+  width: fit-content;
+  padding: 11.2px 15.3px;
+  height: 44px;
+  border-right: 1px solid $grayBorder;
+  font-size: 18px;
+  font-weight: 400;
+
+}
+
+.table{
+  display: grid;
+  grid-template-columns: minmax(110px, auto) minmax(auto, 1fr) repeat(4, minmax(200px, auto));
+  grid-auto-rows: min-content;
+  justify-content: stretch;
+
+  flex-grow: 1;
+  padding: 0 10px;
+  background-color: $black;
+  overflow: auto;
+
+  &>:nth-last-child(n+7){
+    border-bottom: 1px solid $grayBorder;
+  }
+}
+
+.cell{
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 16px 12px;
+  
+  &.headerCell{
+    height: 41px;
+    padding: 11px 12px;
+    color: $gray;
+  }
+}
+
+.iconsWrapper{
+  padding: 2px;
+  border-radius: 6px;
+  background-color: $grayBorder;
+}
