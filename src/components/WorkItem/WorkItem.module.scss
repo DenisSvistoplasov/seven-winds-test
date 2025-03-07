@@ -1,0 +1,44 @@
+@use '../../styles/colors' as *;
+@use '../../styles/mixins' as *;
+
+.wrapper {
+  @include tableRow;
+  min-height: 60px;
+}
+
+.buttonsWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background-color: $grayBorder;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  button {
+    opacity: 0;
+    z-index: 1;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  &:hover {
+
+    &::before,
+    button {
+      opacity: 1;
+    }
+  }
+
+  .createBtn {
+    opacity: 1;
+  }
+}
+

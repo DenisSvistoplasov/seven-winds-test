@@ -1,34 +1,73 @@
 import styles from "./WorkItem.module.scss";
 import CreateIcon from "../../assets/icons/create.svg";
-
-export type Item = {
-  level: number;
-  name: string;
-  salary: number;
-  equipment: number;
-  overhead: number;
-  profit: number;
-};
+import TrashIcon from "../../assets/icons/trash.svg";
+import { Item } from "src/types/item";
+import { EditableCell } from "../EditableCell/EditableCell";
+import { useState } from "react";
 
 interface WorkItemProps {
   item: Item;
-  cellClassName: string;
+  isEditMode?: boolean;
 }
 
-export function WorkItem({ item, cellClassName }: WorkItemProps) {
-  const {level, name,salary,equipment,overhead,profit} = item
+export function WorkItem({
+  item,
+  isEditMode: initialEditMode = false,
+}: WorkItemProps) {
+  const {
+    level,
+    rowName,
+    salary,
+    equipmentCosts,
+    overheads,
+    estimatedProfit,
+    parentId,
+  } = item;
+
+  const [isEditMode, setIsEditMode] = useState(initialEditMode);
+
+  const onDoubleClick = () => {
+    if (!isEditMode) setIsEditMode(true);
+  };
+
   return (
-    <>
-      <div className={cellClassName}>
-        <div className={styles.iconsWrapper}>
-          <CreateIcon />
+    <div className={styles.wrapper} onDoubleClick={onDoubleClick}>
+      <div className={styles.cell}>
+        <div className={styles.buttonsWrapper}>
+          <button className={styles.createBtn}>
+            <CreateIcon />
+          </button>
+          <button>
+            <TrashIcon />
+          </button>
         </div>
       </div>
-      <div className={cellClassName}>{name}</div>
-      <div className={cellClassName}>{salary}</div>
-      <div className={cellClassName}>{equipment}</div>
-      <div className={cellClassName}>{overhead}</div>
-      <div className={cellClassName}>{profit}</div>
-    </>
+
+      <EditableCell
+        onChange={() => {}}
+        value={rowName}
+        isEditMode={isEditMode}
+      />
+      <EditableCell
+        onChange={() => {}}
+        value={salary}
+        isEditMode={isEditMode}
+      />
+      <EditableCell
+        onChange={() => {}}
+        value={equipmentCosts}
+        isEditMode={isEditMode}
+      />
+      <EditableCell
+        onChange={() => {}}
+        value={overheads}
+        isEditMode={isEditMode}
+      />
+      <EditableCell
+        onChange={() => {}}
+        value={estimatedProfit}
+        isEditMode={isEditMode}
+      />
+    </div>
   );
 }

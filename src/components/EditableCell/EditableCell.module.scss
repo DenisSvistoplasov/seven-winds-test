@@ -1,0 +1,13 @@
+@use '../../styles/colors' as *;
+
+.wrapper{
+  padding: 12px;
+}
+
+.input{
+  padding: 9px;
+  border: 1px solid $grayBorder;
+  border-radius: 6px;
+  line-height: 16px;
+  color: $darkGray;
+}

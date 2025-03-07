@@ -1,0 +1,17 @@
+@use './colors' as *;
+
+@mixin tableRow {
+  display: grid;
+  grid-template-columns: var(--level-column-width) minmax(200px, 1fr) repeat(4, 200px);
+  min-width: fit-content;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid $grayBorder;
+  }
+
+  &>* {
+    display: flex;
+    align-items: center;
+    padding: 5px 12px;
+  }
+}
