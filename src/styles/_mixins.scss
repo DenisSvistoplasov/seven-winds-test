@@ -2,8 +2,10 @@
 
 @mixin tableRow {
   display: grid;
-  grid-template-columns: var(--level-column-width) minmax(200px, 1fr) repeat(4, 200px);
+  grid-template-columns: max(110px, calc(78px + var(--maxLevel)*20px)) minmax(200px, 1fr) repeat(4, 200px);
   min-width: fit-content;
+  border-bottom: 1px solid transparent;
+  transition: grid-template-columns .3s ease-in-out;
 
   &:not(:last-child) {
     border-bottom: 1px solid $grayBorder;

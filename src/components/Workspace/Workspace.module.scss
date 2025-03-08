@@ -27,12 +27,15 @@
   padding: 0 10px;
   background-color: $black;
   overflow: auto;
-
-  --level-column-width: 110px;
 }
 
 .tableHeader {
   @include tableRow;
   min-height: 41px;
   color: $gray;
+}
+
+.loading{
+  padding: 20px;
+  text-align: center;
 }

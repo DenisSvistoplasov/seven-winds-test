@@ -1,5 +1,12 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {
+  backendToFrontendItemTree,
+  getBackendItemExtraProps,
+  extractFrontendItemProps,
+  findItemInTreeById,
+  applyChangesFromResponse,
+} from 'src/helpers/itemHelpers';
+import {
   CreationItem,
   CreationItemRequest,
   DeleteItemResponse,
@@ -7,7 +14,6 @@ import {
   BackendItemNode,
   UpdateItemRequest,
   ItemNode,
-  ItemResponse,
   CreationItemResponse,
   UpdateItemResponse,
 } from 'src/types/item';
@@ -39,7 +45,7 @@ export const itemApi = createApi({
       query(item) {
         const backendItem: CreationItemRequest = {
           ...item,
-          ...getBackendExtraProps(),
+          ...getBackendItemExtraProps(),
         };
         return {
           url: 'create',
@@ -47,27 +53,32 @@ export const itemApi = createApi({
           body: backendItem,
         };
       },
-      async onQueryStarted({ parentId }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ parentId, level }, { dispatch, queryFulfilled }) {
         try {
           const response = await queryFulfilled;
-          const backendItem = response.data.current;
+          const { current, changed } = response.data;
           const newItem: ItemNode = {
-            ...extractFrontendItemProps(backendItem),
+            ...extractFrontendItemProps(current),
             parentId,
+            level,
             children: [],
           };
 
           dispatch(
             itemApi.util.updateQueryData('getItems', undefined, (draft) => {
+              // current
               if (parentId === null) draft.push(newItem);
               else {
-                const parentItem = findInItemTreeById(
+                const parentItem = findItemInTreeById(
                   draft,
                   parentId
                 )?.foundNode;
                 if (parentItem) parentItem.children.push(newItem);
                 else throw 'Creation: parentItem was not found';
               }
+
+              // changed
+              if (changed.length) applyChangesFromResponse(draft, changed);
             })
           );
         } catch (error) {
@@ -80,7 +91,7 @@ export const itemApi = createApi({
       query(item) {
         const backendUpdateItem: UpdateItemRequest = {
           ...item,
-          ...getBackendExtraProps(),
+          ...getBackendItemExtraProps(),
         };
 
         return {
@@ -92,18 +103,22 @@ export const itemApi = createApi({
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         try {
           const response = await queryFulfilled;
-          console.log('response: ', response);
-          const backendItem = response.data.current;
-          const updateItemPatch: Partial<ItemNode> = extractFrontendItemProps(backendItem);
+          const { current, changed } = response.data;
+          const updateItemPatch: Partial<ItemNode> =
+            extractFrontendItemProps(current);
 
           dispatch(
             itemApi.util.updateQueryData('getItems', undefined, (draft) => {
-              const searchResult = findInItemTreeById(draft, id);
+              // current
+              const searchResult = findItemInTreeById(draft, id);
 
               if (searchResult) {
                 const { foundNode, parentArray, index } = searchResult;
                 parentArray[index] = { ...foundNode, ...updateItemPatch };
               } else throw 'Updating: item was not found';
+
+              // changed
+              if (changed.length) applyChangesFromResponse(draft, changed);
             })
           );
         } catch (error) {
@@ -122,17 +137,20 @@ export const itemApi = createApi({
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         try {
           const response = await queryFulfilled;
-          console.log('response: ', response);
+          const { changed } = response.data;
 
           dispatch(
             itemApi.util.updateQueryData('getItems', undefined, (draft) => {
-              const searchResult = findInItemTreeById(draft, id)
+              // current
+              const searchResult = findItemInTreeById(draft, id);
 
               if (searchResult) {
-                const { parentArray, index } = searchResult
-                parentArray.splice(index, 1)
-              }
-              else throw 'Deletion: item was not found';
+                const { parentArray, index } = searchResult;
+                parentArray.splice(index, 1);
+              } else throw 'Deletion: item was not found';
+
+              // changed
+              if (changed.length) applyChangesFromResponse(draft, changed);
             })
           );
         } catch (error) {
@@ -143,52 +161,9 @@ export const itemApi = createApi({
   }),
 });
 
-export const { useGetItemsQuery, useCreateItemMutation } = itemApi;
-
-function getBackendExtraProps() {
-  return {
-    machineOperatorSalary: 0,
-    mainCosts: 0,
-    materials: 0,
-    mimExploitation: 0,
-    supportCosts: 0,
-  };
-}
-
-function backendToFrontendItemTree(
-  nodes: BackendItemNode[],
-  parentId?: Item['parentId'],
-  level: Item['level'] = 0
-): ItemNode[] {
-  return nodes.map((node) => ({
-    ...extractFrontendItemProps(node),
-    parentId: parentId || null,
-    level,
-    children: node.child
-      ? backendToFrontendItemTree(node.child, node.id, level + 1)
-      : [],
-  }));
-}
-
-function extractFrontendItemProps(backendItem: ItemResponse) {
-  const { equipmentCosts, estimatedProfit, id, overheads, rowName, salary } =
-    backendItem as any as Item | ItemResponse;
-  return { equipmentCosts, estimatedProfit, id, overheads, rowName, salary };
-}
-
-function findInItemTreeById(
-  nodes: ItemNode[],
-  id: Item['parentId']
-): { foundNode: ItemNode; parentArray: ItemNode[]; index: number } | null {
-  for (let i = 0; i < nodes.length; i++) {
-    const node = nodes[i];
-    if (node.id === id)
-      return { foundNode: node, parentArray: nodes, index: i };
-    if (node.children.length) {
-      const childrenResult = findInItemTreeById(node.children, id);
-      if (childrenResult) return childrenResult;
-    }
-  }
-
-  return null;
-}
+export const {
+  useGetItemsQuery,
+  useCreateItemMutation,
+  useUpdateItemMutation,
+  useDeleteItemMutation,
+} = itemApi;

@@ -11,17 +11,11 @@
   display: flex;
   align-items: center;
   gap: 2px;
+  margin-left: calc(var(--level) * 20px);
   padding: 2px;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 6px;
-    background-color: $grayBorder;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-  }
+  border-radius: 6px;
+  background-color: transparent;
+  transition: background-color 0.2s ease-in-out;
 
   button {
     opacity: 0;
@@ -30,8 +24,8 @@
   }
 
   &:hover {
-
-    &::before,
+    background-color: $grayBorder;
+    
     button {
       opacity: 1;
     }
@@ -39,6 +33,31 @@
 
   .createBtn {
     opacity: 1;
+  }
+}
+
+.hasChildren{
+  &::after{
+    content: '';
+    position: absolute;
+    top: calc(50% + 8px);
+    left: 14px;
+    width: 1px;
+    height: 52px;
+    height: calc(var(--descendantsTillLastChild) * 60px - 7px);
+    background-color: $grayGraph;
+  }
+}
+
+.hasParent{
+  &::before{
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -6px;
+    width: 12px;
+    height: 1px;
+    background-color: $grayGraph;
   }
 }
 

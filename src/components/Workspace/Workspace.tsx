@@ -1,40 +1,51 @@
-import clsx from "clsx";
-import styles from "./Workspace.module.scss";
-import { WorkItem } from "../WorkItem/WorkItem";
-import { Item, ItemNode } from "src/types/item";
-import { useCreateItemMutation, useGetItemsQuery } from "src/store/itemApi";
-import { useMemo } from "react";
-
-// const items: Item[] = [
-//   {
-//     level: 0,
-//     rowName: "Южная строительная площадка",
-//     salary: 20_348,
-//     equipmentCosts: 1_750,
-//     overheads: 108.07,
-//     estimatedProfit: 1_209_122.5,
-//     parentId: 0
-//   },
-// ];
+import clsx from 'clsx';
+import styles from './Workspace.module.scss';
+import { WorkItem } from '../WorkItem/WorkItem';
+import { Item } from 'src/types/item';
+import { useGetItemsQuery } from 'src/store/itemApi';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { produce } from 'immer';
+import { treeToArray, createNewItemInstance, findItemInTreeById } from 'src/helpers/itemHelpers';
 
 interface WorkspaceProps {}
 
 export function Workspace({}: WorkspaceProps) {
-  const { data: itemNodes = [], isLoading } = useGetItemsQuery();
-  const [createItemApi] = useCreateItemMutation();
+  const { data: fetchedItemsNodes, isLoading } = useGetItemsQuery();
+  const [itemNodes, setItemsNodes] = useState(fetchedItemsNodes || []);
 
-  const items = useMemo(() => treeToArray(itemNodes), [itemNodes]);
+  const { array: items } = useMemo(() => treeToArray(itemNodes), [itemNodes]);
 
-  const createItem = () =>
-    createItemApi({
-      rowName: "test name" + (Date.now() + "").slice(-3),
-      equipmentCosts: 0,
-      estimatedProfit: 0,
-      level: 0,
-      overheads: 0,
-      salary: 0,
-      parentId: null,
-    });
+  useEffect(() => {
+    if (fetchedItemsNodes) setItemsNodes(fetchedItemsNodes);
+  }, [fetchedItemsNodes]);
+
+  useEffect(() => {
+    if (!items.length) createLocalChildItem(null, 0);
+  }, [items.length]);
+
+  useLayoutEffect(() => {
+    const maxLevel = items.reduce(
+      (max, { level = 0 }) => (level > max ? level : max),
+      0
+    );
+    document.documentElement.style.setProperty('--maxLevel', maxLevel + '');
+  }, [items]);
+
+  const createLocalChildItem = (
+    id: Item['id'] | null,
+    level: Item['level']
+  ) => {
+    setItemsNodes((nodes) =>
+      produce(nodes, (draft) => {
+        if (id) {
+          const searchResult = findItemInTreeById(draft, id);
+          if (!searchResult) throw `node with id ${id} was not found`;
+          const foundNode = searchResult.foundNode;
+          foundNode.children.push(createNewItemInstance(id, level));
+        } else draft.push(createNewItemInstance(id, level));
+      })
+    );
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -62,25 +73,22 @@ export function Workspace({}: WorkspaceProps) {
           </div>
         </div>
 
-        {/* TODO: <ul><li></li></ul> */}
-        
-        {items?.map((item, index) => (
-          <WorkItem item={item} isEditMode={index%2==0} />
-        ))}
+        {isLoading ? (
+          <div className={styles.loading}>Loading...</div>
+        ) : (
+          <ul>
+            {items.map((item) => {
+              return (
+                <WorkItem
+                  key={item.id}
+                  item={item}
+                  createChild={createLocalChildItem}
+                />
+              );
+            })}
+          </ul>
+        )}
       </div>
-
-      <button onClick={createItem}>CREATE</button>
     </div>
   );
-}
-
-function treeToArray(nodes: ItemNode[]): Item[] {
-  const array: Item[] = [];
-
-  nodes.forEach((node) => {
-    array.push(node);
-    if (node.children.length) array.push(...treeToArray(node.children));
-  });
-
-  return array;
 }

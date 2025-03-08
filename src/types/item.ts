@@ -19,6 +19,9 @@ export type Item = BaseItem & {
   level?: number;
   parentId: number | null;
   id: number;
+  isCreation?: boolean;
+  hasChildren?: boolean;
+  descendantsTillLastChild?: number;
 };
 
 export type CreationItem = Omit<Item, 'id'>;
@@ -44,7 +47,7 @@ export type ItemResponse = BaseBackendItem & {
   total: number;
 };
 export type CreationItemResponse = {
-  changed: ItemResponse;
+  changed: ItemResponse[];
   current: ItemResponse;
 };
 
